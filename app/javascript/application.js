@@ -2,75 +2,58 @@
 import "@hotwired/turbo-rails";
 import "controllers";
 
-document.addEventListener("DOMContentLoaded", () => {
-  const form = document.getElementById("user_form");
+document.addEventListener("DOMContentLoaded", function () {
   const mapModal = document.getElementById("mapModal");
-  const confirmLocation = document.getElementById("confirmLocation");
-  const cancelLocation = document.getElementById("cancelLocation");
+  const openMapModalButton = document.getElementById("openMapModal");
+  const confirmLocationButton = document.getElementById("confirmLocation");
+  const cancelLocationButton = document.getElementById("cancelLocation");
+  const latitudeInput = document.getElementById("latitude");
+  const longitudeInput = document.getElementById("longitude");
+  const locationInput = document.getElementById("user_location");
 
-  let map;
-  let marker;
-  let selectedLocation = { lat: null, lng: null };
+  let map, marker;
 
-  form.addEventListener("submit", (e) => {
-    e.preventDefault();
-    mapModal.style.display = "block";
-    setTimeout(() => {
-      initializeMap();
-    }, 100);
+  openMapModalButton.addEventListener("click", function () {
+    mapModal.classList.remove("hidden");
+    initMap();
   });
 
-  confirmLocation.addEventListener("click", () => {
-    if (selectedLocation.lat && selectedLocation.lng) {
-      document.getElementById("latitude").value = selectedLocation.lat;
-      document.getElementById("longitude").value = selectedLocation.lng;
-      mapModal.style.display = "none";
-      form.submit();
-    } else {
-      alert("Please select a location on the map.");
+  confirmLocationButton.addEventListener("click", function () {
+    if (marker) {
+      const position = marker.getPosition();
+      latitudeInput.value = position.lat();
+      longitudeInput.value = position.lng();
+      locationInput.value = `${position.lat()}, ${position.lng()}`;
     }
+    mapModal.classList.add("hidden");
   });
 
-  cancelLocation.addEventListener("click", () => {
-    mapModal.style.display = "none";
+  cancelLocationButton.addEventListener("click", function () {
+    mapModal.classList.add("hidden");
   });
 
-  function initializeMap() {
-    try {
+  function initMap() {
+    if (!map) {
       map = new google.maps.Map(document.getElementById("map"), {
         center: { lat: 0, lng: 0 },
         zoom: 2,
       });
 
-      marker = new google.maps.Marker({
-        map: map,
-        draggable: true,
+      map.addListener("click", function (e) {
+        placeMarker(e.latLng);
       });
-
-      map.addListener("click", function (event) {
-        placeMarker(event.latLng);
-      });
-
-      // Add listener for marker drag end
-      marker.addListener("dragend", function (event) {
-        selectedLocation.lat = event.latLng.lat();
-        selectedLocation.lng = event.latLng.lng();
-      });
-    } catch (error) {
-      console.error("Error initializing map:", error);
-      alert("There was an error loading the map. Please try again.");
     }
   }
 
   function placeMarker(latLng) {
-    marker.setPosition(latLng);
+    if (marker) {
+      marker.setPosition(latLng);
+    } else {
+      marker = new google.maps.Marker({
+        position: latLng,
+        map: map,
+      });
+    }
     map.panTo(latLng);
-    selectedLocation.lat = latLng.lat();
-    selectedLocation.lng = latLng.lng();
-  }
-
-  // Add this to check if Google Maps API is loaded
-  if (typeof google === "undefined") {
-    console.error("Google Maps API is not loaded");
   }
 });
