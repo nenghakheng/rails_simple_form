@@ -36,5 +36,5 @@ ActiveRecord::Schema[7.0].define(version: 2024_10_11_053343) do
     t.datetime "updated_at", null: false
   end
 
-  add_foreign_key "addresses", "users"
+  add_foreign_key "addresses", "users", on_delete: :cascade
 end

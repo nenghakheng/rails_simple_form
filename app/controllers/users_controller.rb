@@ -21,7 +21,8 @@ class UsersController < ApplicationController
 
   def edit
     @user = User.find(params[:id])
-    @address = @user.address
+    @latitude = @user.address.latitude
+    @longitude = @user.address.longitude
   end
 
   def update
